@@ -1,0 +1,185 @@
+auravybe-collections
+====================
+TY Board Exam Project — Complaint & Service Request Management System
+API Collections Reference
+=====================================================================
+
+Base URL (local development) : http://localhost:5000
+Base URL (production)        : https://<your-deployed-backend-domain>
+
+Note: Always use HTTPS in production to protect data in transit.
+
+All protected routes require the Authorization header:
+  Authorization: Bearer <token>
+
+=====================================================================
+COLLECTION 1: Authentication (/api/auth)
+=====================================================================
+
+1. Register User
+   Method : POST
+   URL    : /api/auth/register
+   Body   : {
+               "name":     "John Doe",
+               "email":    "john@example.com",
+               "password": "secret123"
+             }
+   Success: 200  { "message": "User registered successfully!" }
+   Errors : 400  { "error": "Email already in use" }
+             400  [{ "msg": "...", "param": "..." }]  (validation)
+             500  { "error": "Database error", "details": "..." }
+
+2. Login User
+   Method : POST
+   URL    : /api/auth/login
+   Body   : {
+               "email":    "john@example.com",
+               "password": "secret123"
+             }
+   Success: 200  { "token": "<jwt_token>" }
+   Errors : 400  { "error": "User not found" }
+             400  { "error": "Invalid credentials" }
+             500  { "error": "Database error" }
+
+=====================================================================
+COLLECTION 2: Complaints (/api/complaints)
+=====================================================================
+
+3. Submit a Complaint  [User]
+   Method : POST
+   URL    : /api/complaints
+   Headers: Authorization: Bearer <token>
+   Body   : {
+               "category":    "Infrastructure",
+               "description": "Water leakage in corridor."
+             }
+   Success: 201  { "message": "Complaint submitted successfully!" }
+   Errors : 400  { "error": "Category and description are required." }
+             500  { "error": "An error occurred while submitting the complaint." }
+
+4. Get My Complaints  [User]
+   Method : GET
+   URL    : /api/complaints
+   Headers: Authorization: Bearer <token>
+   Success: 200  [ { "id": 1, "user_id": 5, "category": "...", "description": "...",
+                     "status": "pending", "created_at": "..." }, ... ]
+   Errors : 500  { "error": "An error occurred while retrieving complaints." }
+
+5. Get All Complaints  [Admin]
+   Method : GET
+   URL    : /api/complaints/admin
+   Headers: Authorization: Bearer <admin_token>
+   Success: 200  [ { "id": 1, "user_id": 5, "category": "...", "description": "...",
+                     "status": "pending", "created_at": "...",
+                     "user_name": "John Doe", "user_email": "john@example.com" }, ... ]
+   Errors : 403  { "error": "Access denied" }
+             500  { "error": "An error occurred while retrieving complaints." }
+
+6. Update Complaint Status  [Admin]
+   Method : PUT
+   URL    : /api/complaints/:id/status
+   Headers: Authorization: Bearer <admin_token>
+   Body   : { "status": "resolved" }
+   Success: 200  { "message": "Complaint status updated!" }
+   Errors : 400  { "error": "Status is required." }
+             403  { "error": "Access denied" }
+             500  { "error": "An error occurred while updating the complaint status." }
+
+=====================================================================
+COLLECTION 3: Service Requests (/api/service-requests)
+=====================================================================
+
+7. Submit a Service Request  [User]
+   Method : POST
+   URL    : /api/service-requests
+   Headers: Authorization: Bearer <token>
+   Body   : {
+               "title":       "Printer Repair",
+               "description": "Office printer is not working."
+             }
+   Success: 201  { "message": "Service request submitted successfully!" }
+   Errors : 400  { "error": "Title and description are required." }
+             500  { "error": "An error occurred while submitting the request." }
+
+8. Get My Service Requests  [User]
+   Method : GET
+   URL    : /api/service-requests
+   Headers: Authorization: Bearer <token>
+   Success: 200  [ { "id": 1, "user_id": 5, "title": "...", "description": "...",
+                     "status": "pending", "created_at": "..." }, ... ]
+   Errors : 500  { "error": "An error occurred while retrieving requests." }
+
+9. Get All Service Requests  [Admin]
+   Method : GET
+   URL    : /api/service-requests/admin
+   Headers: Authorization: Bearer <admin_token>
+   Success: 200  [ { "id": 1, "title": "...", "description": "...", "status": "...",
+                     "created_at": "...", "user_name": "...", "user_email": "..." }, ... ]
+   Errors : 403  { "error": "Access denied" }
+             500  { "error": "An error occurred while retrieving service requests." }
+
+10. Update Service Request Status  [Admin]
+    Method : PUT
+    URL    : /api/service-requests/:id/status
+    Headers: Authorization: Bearer <admin_token>
+    Body   : { "status": "approved" }
+    Note   : Valid statuses: pending | approved | rejected | in_progress | resolved
+    Success: 200  { "message": "Service request status updated successfully!" }
+    Errors : 400  { "error": "Invalid status value. Use: pending / approved / rejected / in_progress / resolved." }
+              403  { "error": "Access denied" }
+              500  { "error": "An error occurred while updating the request status." }
+
+=====================================================================
+COLLECTION 4: Notices (/api/notices)
+=====================================================================
+
+11. Get All Notices  [Public]
+    Method : GET
+    URL    : /api/notices
+    Success: 200  [ { "id": 1, "title": "...", "message": "...", "created_at": "..." }, ... ]
+    Errors : 500  { "error": "Failed to fetch notices" }
+
+12. Add a Notice  [Admin]
+    Method : POST
+    URL    : /api/notices
+    Headers: Authorization: Bearer <admin_token>
+    Body   : {
+                "title":   "Holiday Notice",
+                "message": "Office will remain closed on 15th August."
+              }
+    Success: 200  { "message": "Notice added successfully!", "noticeId": 3 }
+    Errors : 400  [{ "msg": "Title is required" }, { "msg": "Message is required" }]
+              403  { "error": "Access denied" }
+              500  { "error": "Failed to add notice", "details": "..." }
+
+13. Delete a Notice  [Admin]
+    Method : DELETE
+    URL    : /api/notices/:id
+    Headers: Authorization: Bearer <admin_token>
+    Success: 200  { "message": "Notice deleted successfully!" }
+    Errors : 403  { "error": "Access denied" }
+              404  { "error": "Notice not found" }
+              500  { "error": "Failed to delete notice" }
+
+=====================================================================
+HEALTH CHECK
+=====================================================================
+
+14. API Health Check  [Public]
+    Method : GET
+    URL    : /
+    Success: 200  "API Running"
+
+=====================================================================
+NOTES
+=====================================================================
+
+- JWT tokens expire after 1 hour. Re-login to obtain a fresh token.
+  On the client side you can detect expiry by checking the HTTP 401 response from any
+  protected endpoint, then clearing `AsyncStorage` and redirecting the user to login.
+- To promote a user to admin, a database administrator must run the following
+  SQL directly on the MySQL server. This action bypasses application logic, so
+  it must only be executed by an authorized DBA in a secure, audited environment:
+    UPDATE users SET role='admin' WHERE email='youradminemail@example.com';
+- Database: MySQL, database name: expo_app
+- Default backend port: 5000
