@@ -175,6 +175,8 @@ NOTES
 =====================================================================
 
 - JWT tokens expire after 1 hour. Re-login to obtain a fresh token.
+  On the client side you can detect expiry by checking the HTTP 401 response from any
+  protected endpoint, then clearing `AsyncStorage` and redirecting the user to login.
 - To promote a user to admin, a database administrator must run the following
   SQL directly on the MySQL server. This action bypasses application logic, so
   it must only be executed by an authorized DBA in a secure, audited environment:
